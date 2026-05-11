@@ -13,6 +13,46 @@ export interface DevelopmentProgress {
   marketing: boolean;
 }
 
+export interface AICharacterDraft {
+  name: string;
+  company?: string;
+  game?: string;
+  version?: string;
+  rarity?: Rarity;
+  position?: string;
+  weaponType?: string;
+  tags?: string[];
+  worldview?: string;
+  background?: string;
+  personality?: string;
+  sellingPoints?: string;
+  assets?: {
+    portrait?: string;
+    conceptArt?: string;
+    modelPreview?: string;
+    pvUrl?: string;
+  };
+  progress?: Partial<DevelopmentProgress>;
+  overallProgress?: number;
+  currentStage?: string;
+  nextMilestone?: string;
+  riskNote?: string;
+  performance?: Partial<PerformanceData>;
+}
+
+export interface AIAnalysisResult {
+  summary: string;
+  highlights: string[];
+  recommendations: string[];
+}
+
+export interface AIAssistantResponse {
+  intent: 'general' | 'create_character' | 'analyze_performance';
+  reply: string;
+  characterDraft?: AICharacterDraft;
+  analysis?: AIAnalysisResult;
+}
+
 export interface PerformanceData {
   firstDayRevenue: number;
   firstThreeDaysRevenue: number;

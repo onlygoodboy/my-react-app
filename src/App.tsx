@@ -23,8 +23,9 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
 import ModelPreview from './components/ModelPreview';
+import AiAssistant from './components/AiAssistant';
 import { MOCK_CHARACTERS } from './mockData';
-import { Character, CharacterStatus, DevelopmentProgress, PerformanceData } from './types';
+import { AICharacterDraft, Character, CharacterStatus, DevelopmentProgress, PerformanceData } from './types';
 import { 
   LineChart, 
   Line, 
@@ -2159,6 +2160,97 @@ export default function App() {
     setCharacters(characters.map(c => c.id === id ? { ...c, ...updates } : c));
   };
 
+  const handleCreateCharacterFromAI = (draft: AICharacterDraft) => {
+    const template = characters[0] ?? MOCK_CHARACTERS[0];
+    const inProgressTemplate = characters.find(c => !c.launchTime) ?? template;
+    const launchedTemplate = characters.find(c => c.launchTime && c.performance) ?? template;
+    const normalizedProgress: DevelopmentProgress = {
+      concept: draft.progress?.concept ?? false,
+      illustration: draft.progress?.illustration ?? false,
+      modeling: draft.progress?.modeling ?? false,
+      skills: draft.progress?.skills ?? false,
+      stats: draft.progress?.stats ?? false,
+      voice: draft.progress?.voice ?? false,
+      pv: draft.progress?.pv ?? false,
+      config: draft.progress?.config ?? false,
+      marketing: draft.progress?.marketing ?? false,
+    };
+    const hasPerformance = Boolean(
+      draft.performance &&
+      (draft.performance.firstDayRevenue ||
+        draft.performance.firstThreeDaysRevenue ||
+        draft.performance.firstWeekRevenue ||
+        draft.performance.peakPopularity),
+    );
+
+    const newCharacter: Character = {
+      id: Math.random().toString(36).slice(2, 11),
+      name: draft.name || '未命名角色',
+      company: template.company,
+      game: draft.game || template.game,
+      version: draft.version || 'v1.0',
+      rarity: draft.rarity || 'SSR',
+      position: draft.position || '',
+      weaponType: draft.weaponType || '',
+      tags: draft.tags?.filter(Boolean) || [],
+      status: hasPerformance ? launchedTemplate.status : inProgressTemplate.status,
+      createTime: new Date().toISOString().split('T')[0],
+      launchTime: hasPerformance ? new Date().toISOString().split('T')[0] : undefined,
+      worldview: draft.worldview || '',
+      background: draft.background || '',
+      personality: draft.personality || '',
+      sellingPoints: draft.sellingPoints || '',
+      progress: normalizedProgress,
+      overallProgress: draft.overallProgress ?? (hasPerformance ? 100 : 20),
+      currentStage: draft.currentStage || (hasPerformance ? launchedTemplate.currentStage : inProgressTemplate.currentStage),
+      nextMilestone: draft.nextMilestone || (hasPerformance ? '-' : inProgressTemplate.nextMilestone),
+      isDelayed: false,
+      riskNote: draft.riskNote || 'AI assistant generated draft',
+      assets: draft.assets,
+      performance: hasPerformance
+        ? {
+            firstDayRevenue: draft.performance?.firstDayRevenue ?? 0,
+            firstThreeDaysRevenue:
+              draft.performance?.firstThreeDaysRevenue ??
+              Math.max((draft.performance?.firstDayRevenue ?? 0) * 2, 0),
+            firstWeekRevenue:
+              draft.performance?.firstWeekRevenue ??
+              Math.max((draft.performance?.firstThreeDaysRevenue ?? 0) * 1.6, 0),
+            peakPopularity: draft.performance?.peakPopularity ?? 0,
+            rank: draft.performance?.rank ?? 0,
+            revenueTrend:
+              draft.performance?.revenueTrend && draft.performance.revenueTrend.length > 0
+                ? draft.performance.revenueTrend
+                : [
+                    { date: 'Day 1', value: Math.round((draft.performance?.firstDayRevenue ?? 0) / 10000) },
+                    { date: 'Day 2', value: Math.round((draft.performance?.firstDayRevenue ?? 0) / 12000) },
+                    { date: 'Day 3', value: Math.round((draft.performance?.firstThreeDaysRevenue ?? 0) / 45000) },
+                    { date: 'Day 4', value: Math.round((draft.performance?.firstWeekRevenue ?? 0) / 90000) },
+                    { date: 'Day 5', value: Math.round((draft.performance?.firstWeekRevenue ?? 0) / 100000) },
+                    { date: 'Day 6', value: Math.round((draft.performance?.firstWeekRevenue ?? 0) / 110000) },
+                    { date: 'Day 7', value: Math.round((draft.performance?.firstWeekRevenue ?? 0) / 120000) },
+                  ],
+            popularityTrend:
+              draft.performance?.popularityTrend && draft.performance.popularityTrend.length > 0
+                ? draft.performance.popularityTrend
+                : [
+                    { date: 'Day 1', value: draft.performance?.peakPopularity ?? 0 },
+                    { date: 'Day 2', value: Math.max((draft.performance?.peakPopularity ?? 0) - 2, 0) },
+                    { date: 'Day 3', value: Math.max((draft.performance?.peakPopularity ?? 0) - 3, 0) },
+                    { date: 'Day 4', value: Math.max((draft.performance?.peakPopularity ?? 0) - 5, 0) },
+                    { date: 'Day 5', value: Math.max((draft.performance?.peakPopularity ?? 0) - 6, 0) },
+                    { date: 'Day 6', value: Math.max((draft.performance?.peakPopularity ?? 0) - 7, 0) },
+                    { date: 'Day 7', value: Math.max((draft.performance?.peakPopularity ?? 0) - 6, 0) },
+                  ],
+          }
+        : undefined,
+    };
+
+    handleAddCharacter(newCharacter);
+  };
+
+  const selectedCharacter = characters.find(c => c.id === selectedCharId) ?? null;
+
   const renderPage = () => {
     const mihoyoCharacters = characters.filter(c => c.company === '米哈游');
     
@@ -2166,8 +2258,7 @@ export default function App() {
       case '首页': return <Dashboard characters={mihoyoCharacters} onNavigate={navigate} />;
       case '角色管理': return <CharacterList characters={mihoyoCharacters} onNavigate={navigate} onAddClick={() => setIsAddModalOpen(true)} />;
       case '角色详情': 
-        const char = characters.find(c => c.id === selectedCharId);
-        return char ? <CharacterDetail character={char} onNavigate={navigate} onUpdateCharacter={handleUpdateCharacter} initialStage={selectedStage} /> : <Dashboard characters={mihoyoCharacters} onNavigate={navigate} />;
+        return selectedCharacter ? <CharacterDetail character={selectedCharacter} onNavigate={navigate} onUpdateCharacter={handleUpdateCharacter} initialStage={selectedStage} /> : <Dashboard characters={mihoyoCharacters} onNavigate={navigate} />;
       case '开发进度': return <DevelopmentProgressPage characters={mihoyoCharacters} onNavigate={navigate} />;
       case '上线检查': return <LaunchChecklist characters={mihoyoCharacters} onUpdateCharacter={handleUpdateCharacter} onNavigate={navigate} />;
       case '数据分析': return <DataAnalysis characters={characters} />;
@@ -2248,6 +2339,11 @@ export default function App() {
           </AnimatePresence>
         </div>
       </main>
+      <AiAssistant
+        characters={characters}
+        selectedCharacter={selectedCharacter}
+        onCreateCharacter={handleCreateCharacterFromAI}
+      />
       <button
         type="button"
         onClick={() => void playAudioOnce()}
