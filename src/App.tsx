@@ -2347,7 +2347,7 @@ export default function App() {
       <button
         type="button"
         onClick={() => void playAudioOnce()}
-        className="fixed bottom-6 right-6 z-[80] flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-xl shadow-indigo-200 transition-all hover:bg-indigo-700"
+        className="fixed bottom-6 right-[230px] z-[80] flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-xl shadow-indigo-200 transition-all hover:bg-indigo-700"
       >
         <Volume2 size={18} />
         {isAudioPlaying ? '重新播放音乐' : '播放音乐'}

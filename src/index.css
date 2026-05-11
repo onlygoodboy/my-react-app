@@ -11,6 +11,22 @@ body {
   @apply antialiased;
 }
 
+.assistant-shadow {
+  animation: assistant-shadow-pulse 4.8s ease-in-out infinite;
+}
+
+@keyframes assistant-shadow-pulse {
+  0%,
+  100% {
+    transform: scaleX(0.96);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleX(1.08);
+    opacity: 0.25;
+  }
+}
+
 /* Custom scrollbar for a cleaner look */
 ::-webkit-scrollbar {
   width: 6px;
