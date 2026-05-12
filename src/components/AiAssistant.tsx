@@ -27,6 +27,7 @@ const AMIYA_NAME = '阿米娅';
 const AMIYA_TITLE = '罗德岛 Live2D 助手';
 const AMIYA_PORTRAIT =
   'https://jthwds.oss-cn-hangzhou.aliyuncs.com/characters/5-amiya/illustration/o8ckif3rqc1ssxvv5cmrmcj3y9p4b1t.png';
+const ASSISTANT_API_BASE_URL = (import.meta.env.VITE_ASSISTANT_API_BASE_URL || '').replace(/\/$/, '');
 
 export default function AiAssistant({
   characters,
@@ -68,7 +69,8 @@ export default function AiAssistant({
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/assistant/chat', {
+      const endpoint = ASSISTANT_API_BASE_URL ? `${ASSISTANT_API_BASE_URL}/api/assistant/chat` : '/api/assistant/chat';
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

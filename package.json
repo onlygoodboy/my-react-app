@@ -7,6 +7,7 @@
     "dev": "vite --configLoader runner --port=3000 --host=0.0.0.0",
     "build": "vite build --configLoader runner",
     "preview": "vite preview --configLoader runner",
+    "api": "tsx server/deepseek-proxy.ts",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
   },
